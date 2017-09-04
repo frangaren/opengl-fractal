@@ -14,7 +14,10 @@ typedef struct {
   GLuint fragment_shader;
   GLuint shader_program;
   GLint uniform_resolution;
+  float offset_x;
+  float offset_y;
   GLint uniform_offset;
+  float zoom;
   GLint uniform_zoom;
 } FractalState;
 

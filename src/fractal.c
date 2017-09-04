@@ -3,12 +3,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+static App *fractal;
+
 static GLuint fractal_create_vao();
 static GLuint fractal_create_vbo();
 static GLuint fractal_load_shader(GLenum type, const char *path);
 static bool fractal_create_shader_program(FractalState *state);
+static void fractal_key_callback(GLFWwindow *window, int key, int scancode,\
+  int action, int mods);
 
 bool fractal_initialize(App *app) {
+  fractal = app;
   FractalState *s = app->state;
   s->vao = fractal_create_vao();
   s->vbo = fractal_create_vbo();
@@ -29,9 +34,13 @@ bool fractal_initialize(App *app) {
   s->uniform_resolution = glGetUniformLocation(s->shader_program,"resolution");
   glUniform2f(s->uniform_resolution, (float)(app->width),(float)(app->height));
   s->uniform_offset = glGetUniformLocation(s->shader_program, "offset");
-  glUniform2f(s->uniform_offset, 0.0f, 0.0f);
+  s->offset_x = 0.0f;
+  s->offset_y = 0.0f;
+  glUniform2f(s->uniform_offset, s->offset_x, s->offset_y);
   s->uniform_zoom = glGetUniformLocation(s->shader_program, "zoom");
-  glUniform1f(s->uniform_zoom, 1.0f);
+  s->zoom = 1.0f;
+  glUniform1f(s->uniform_zoom, s->zoom);
+  glfwSetKeyCallback(app->window, fractal_key_callback);
   return true;
 }
 
@@ -130,6 +139,55 @@ static bool fractal_create_shader_program(FractalState *s) {
   // Bind program
   glUseProgram(s->shader_program);
   return true;
+}
+
+static void fractal_key_callback(GLFWwindow *window, int key, int scancode,\
+  int action, int mods) {
+  FractalState *s = fractal->state;
+  switch (key) {
+    case GLFW_KEY_W:
+    case GLFW_KEY_UP:
+      if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+        s->offset_y += 0.05;
+        glUniform2f(s->uniform_offset, s->offset_x, s->offset_y);
+      }
+      break;
+    case GLFW_KEY_S:
+    case GLFW_KEY_DOWN:
+      if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+        s->offset_y -= 0.05;
+        glUniform2f(s->uniform_offset, s->offset_x, s->offset_y);
+      }
+      break;
+    case GLFW_KEY_A:
+    case GLFW_KEY_LEFT:
+      if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+        s->offset_x += 0.05*s->zoom;
+        glUniform2f(s->uniform_offset, s->offset_x, s->offset_y);
+      }
+      break;
+    case GLFW_KEY_D:
+    case GLFW_KEY_RIGHT:
+      if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+        s->offset_x -= 0.05*s->zoom;
+        glUniform2f(s->uniform_offset, s->offset_x, s->offset_y);
+      }
+      break;
+    case GLFW_KEY_R:
+    case GLFW_KEY_LEFT_SHIFT:
+      if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+        s->zoom *= 1.05;
+        glUniform1f(s->uniform_zoom, s->zoom);
+      }
+      break;
+    case GLFW_KEY_F:
+    case GLFW_KEY_LEFT_CONTROL:
+      if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+        s->zoom /= 1.05;
+        glUniform1f(s->uniform_zoom, s->zoom);
+      }
+      break;
+  }
 }
 
 bool fractal_update(App *app) {

@@ -30,7 +30,7 @@ void main() {
 
 vec2 apply_transformations(vec2 v) {
   float ratio = resolution.x/resolution.y;
-  return zoom * (v + offset) * vec2(ratio, 1.0);
+  return zoom * (v * vec2(ratio, 1.0)) + offset;
 }
 
 int mandelbrot_iteration_count(vec2 c) {
