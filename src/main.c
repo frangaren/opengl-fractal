@@ -1,14 +1,7 @@
 #include <stdlib.h>
 
 #include "app.h"
-
-typedef struct {
-} FractalState;
-
-static bool fractal_initialize(void *state);
-static bool fractal_update(void *state);
-static bool fractal_draw(void *state);
-static void fractal_terminate(void *state);
+#include "fractal.h"
 
 int main(int argc, char **argv) {
   App fractal;
@@ -32,20 +25,4 @@ int main(int argc, char **argv) {
   // Free fractal state
   free(fractal.state);
   return 0;
-}
-
-static bool fractal_initialize(void *state) {
-  return true;
-}
-
-static bool fractal_update(void *state) {
-  return true;
-}
-
-static bool fractal_draw(void *state) {
-  return true;
-}
-
-static void fractal_terminate(void *state) {
-  return;
 }
