@@ -5,17 +5,12 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-typedef bool (*AppInitFunc)(void *state);
-typedef bool (*AppUpdateFunc)(void *state);
-typedef bool (*AppDrawFunc)(void *state);
-typedef void (*AppCleanFunc)(void *state);
-
-typedef struct {
+typedef struct app {
   // Functions
-  AppInitFunc init;
-  AppUpdateFunc update;
-  AppDrawFunc draw;
-  AppCleanFunc clean;
+  bool (*init)(struct app *app);
+  bool (*update)(struct app *app);
+  bool (*draw)(struct app *app);
+  void (*clean)(struct app *app);
   // State
   void *state;
   // Window settings
@@ -25,5 +20,10 @@ typedef struct {
   bool fullscreen;
   GLFWwindow *window;
 } App;
+
+typedef bool (*AppInitFunc)(App *app);
+typedef bool (*AppUpdateFunc)(App *app);
+typedef bool (*AppDrawFunc)(App *app);
+typedef void (*AppCleanFunc)(App *app);
 
 bool app_start(App *app);

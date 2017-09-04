@@ -8,8 +8,8 @@ static GLuint fractal_create_vbo();
 static GLuint fractal_load_shader(GLenum type, const char *path);
 static bool fractal_create_shader_program(FractalState *state);
 
-bool fractal_initialize(void *state) {
-  FractalState *s = state;
+bool fractal_initialize(App *app) {
+  FractalState *s = app->state;
   s->vao = fractal_create_vao();
   s->vbo = fractal_create_vbo();
   s->vbo_size = 4;
@@ -23,9 +23,15 @@ bool fractal_initialize(void *state) {
   if (s->fragment_shader == 0) {
     return false;
   }
-  if (!fractal_create_shader_program(state)) {
+  if (!fractal_create_shader_program(s)) {
     return false;
   }
+  s->uniform_resolution = glGetUniformLocation(s->shader_program,"resolution");
+  glUniform2f(s->uniform_resolution, (float)(app->width),(float)(app->height));
+  s->uniform_offset = glGetUniformLocation(s->shader_program, "offset");
+  glUniform2f(s->uniform_offset, 0.0f, 0.0f);
+  s->uniform_zoom = glGetUniformLocation(s->shader_program, "zoom");
+  glUniform1f(s->uniform_zoom, 1.0f);
   return true;
 }
 
@@ -126,19 +132,19 @@ static bool fractal_create_shader_program(FractalState *s) {
   return true;
 }
 
-bool fractal_update(void *state) {
-  FractalState *s = state;
+bool fractal_update(App *app) {
+  //FractalState *s = app->state;
   return true;
 }
 
-bool fractal_draw(void *state) {
-  FractalState *s = state;
+bool fractal_draw(App *app) {
+  FractalState *s = app->state;
   glBindVertexArray(s->vao);
   glDrawArrays(GL_TRIANGLE_STRIP, 0, s->vbo_size);
   return true;
 }
 
-void fractal_terminate(void *state) {
-  FractalState *s = state;
+void fractal_terminate(App *app) {
+  //FractalState *s = app->state;
   return;
 }

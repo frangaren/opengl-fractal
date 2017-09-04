@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#include "app.h"
+
 typedef struct {
   GLuint vao;
   GLuint vbo;
@@ -11,9 +13,12 @@ typedef struct {
   GLuint vertex_shader;
   GLuint fragment_shader;
   GLuint shader_program;
+  GLint uniform_resolution;
+  GLint uniform_offset;
+  GLint uniform_zoom;
 } FractalState;
 
-bool fractal_initialize(void *state);
-bool fractal_update(void *state);
-bool fractal_draw(void *state);
-void fractal_terminate(void *state);
+bool fractal_initialize(App *app);
+bool fractal_update(App *app);
+bool fractal_draw(App *app);
+void fractal_terminate(App *app);

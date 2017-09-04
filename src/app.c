@@ -54,7 +54,7 @@ static bool app_init(App *app) {
     return false;
   }
   // Call init callback
-  if (!app->init(app->state)) {
+  if (!app->init(app)) {
     fprintf(stderr, "%s error: Init callback failed.\n", __func__);
     return false;
   }
@@ -84,17 +84,17 @@ static GLFWwindow *app_create_window(size_t width, size_t height,\
 
 static bool app_update(App *app) {
   // Call update callback
-  return app->update(app->state);
+  return app->update(app);
 }
 
 static bool app_draw(App *app) {
   // Call draw callback
-  return app->draw(app->state);
+  return app->draw(app);
 }
 
 static void app_clean(App *app) {
   // Call clean callback
-  app->clean(app->state);
+  app->clean(app);
   // Terminate glfw
   glfwTerminate();
 }
