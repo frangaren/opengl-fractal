@@ -9,6 +9,9 @@ static GLuint fractal_create_vao();
 static GLuint fractal_create_vbo();
 static GLuint fractal_load_shader(GLenum type, const char *path);
 static bool fractal_create_shader_program(FractalState *state);
+static void fractal_update_resolution_uniform(App *app);
+static void fractal_update_offset_uniform(FractalState *state);
+static void fractal_update_zoom_uniform(FractalState *state);
 static void fractal_key_callback(GLFWwindow *window, int key, int scancode,\
   int action, int mods);
 
@@ -23,23 +26,35 @@ bool fractal_initialize(App *app) {
   if (s->vertex_shader == 0) {
     return false;
   }
-  s->fragment_shader = fractal_load_shader(GL_FRAGMENT_SHADER,\
-    "fragment_shader.glsl");
-  if (s->fragment_shader == 0) {
-    return false;
+  if (GLEW_ARB_gpu_shader_fp64) {
+    fprintf(stderr, "Found extension ARB_gpu_shader_fp64. Using %s\n",
+       "fragment_shader_fp64.glsl");
+    s->fragment_shader = fractal_load_shader(GL_FRAGMENT_SHADER,\
+      "fragment_shader_fp64.glsl");
+    if (s->fragment_shader == 0) {
+      return false;
+    }
+  } else {
+    fprintf(stderr, "Couldn't find extension ARB_gpu_shader_fp64. Using %s\n",
+       "fragment_shader.glsl");
+    s->fragment_shader = fractal_load_shader(GL_FRAGMENT_SHADER,\
+      "fragment_shader.glsl");
+    if (s->fragment_shader == 0) {
+      return false;
+    }
   }
   if (!fractal_create_shader_program(s)) {
     return false;
   }
   s->uniform_resolution = glGetUniformLocation(s->shader_program,"resolution");
-  glUniform2f(s->uniform_resolution, (float)(app->width),(float)(app->height));
+  fractal_update_resolution_uniform(app);
   s->uniform_offset = glGetUniformLocation(s->shader_program, "offset");
-  s->offset_x = 0.0f;
-  s->offset_y = 0.0f;
-  glUniform2f(s->uniform_offset, s->offset_x, s->offset_y);
+  s->offset_x = 0.0;
+  s->offset_y = 0.0;
+  fractal_update_offset_uniform(s);
   s->uniform_zoom = glGetUniformLocation(s->shader_program, "zoom");
-  s->zoom = 1.0f;
-  glUniform1f(s->uniform_zoom, s->zoom);
+  s->zoom = 1.0;
+  fractal_update_zoom_uniform(s);
   glfwSetKeyCallback(app->window, fractal_key_callback);
   return true;
 }
@@ -141,6 +156,31 @@ static bool fractal_create_shader_program(FractalState *s) {
   return true;
 }
 
+static void fractal_update_resolution_uniform(App *app) {
+  FractalState *s = fractal->state;
+  if (GLEW_ARB_gpu_shader_fp64) {
+    glUniform2d(s->uniform_resolution, app->width, app->height);
+  } else {
+    glUniform2f(s->uniform_resolution, app->width, app->height);
+  }
+}
+
+static void fractal_update_offset_uniform(FractalState *s) {
+  if (GLEW_ARB_gpu_shader_fp64) {
+    glUniform2d(s->uniform_offset, s->offset_x, s->offset_y);
+  } else {
+    glUniform2f(s->uniform_offset, s->offset_x, s->offset_y);
+  }
+}
+
+static void fractal_update_zoom_uniform(FractalState *s) {
+  if (GLEW_ARB_gpu_shader_fp64) {
+    glUniform1d(s->uniform_zoom, s->zoom);
+  } else {
+    glUniform1f(s->uniform_zoom, s->zoom);
+  }
+}
+
 static void fractal_key_callback(GLFWwindow *window, int key, int scancode,\
   int action, int mods) {
   FractalState *s = fractal->state;
@@ -148,43 +188,43 @@ static void fractal_key_callback(GLFWwindow *window, int key, int scancode,\
     case GLFW_KEY_W:
     case GLFW_KEY_UP:
       if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-        s->offset_y += 0.05;
-        glUniform2f(s->uniform_offset, s->offset_x, s->offset_y);
+        s->offset_y += 0.05*s->zoom;
+        fractal_update_offset_uniform(s);
       }
       break;
     case GLFW_KEY_S:
     case GLFW_KEY_DOWN:
       if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-        s->offset_y -= 0.05;
-        glUniform2f(s->uniform_offset, s->offset_x, s->offset_y);
+        s->offset_y -= 0.05*s->zoom;
+        fractal_update_offset_uniform(s);
       }
       break;
     case GLFW_KEY_A:
     case GLFW_KEY_LEFT:
       if (action == GLFW_PRESS || action == GLFW_REPEAT) {
         s->offset_x += 0.05*s->zoom;
-        glUniform2f(s->uniform_offset, s->offset_x, s->offset_y);
+        fractal_update_offset_uniform(s);
       }
       break;
     case GLFW_KEY_D:
     case GLFW_KEY_RIGHT:
       if (action == GLFW_PRESS || action == GLFW_REPEAT) {
         s->offset_x -= 0.05*s->zoom;
-        glUniform2f(s->uniform_offset, s->offset_x, s->offset_y);
+        fractal_update_offset_uniform(s);
       }
       break;
     case GLFW_KEY_R:
     case GLFW_KEY_LEFT_SHIFT:
       if (action == GLFW_PRESS || action == GLFW_REPEAT) {
         s->zoom *= 1.05;
-        glUniform1f(s->uniform_zoom, s->zoom);
+        fractal_update_zoom_uniform(s);
       }
       break;
     case GLFW_KEY_F:
     case GLFW_KEY_LEFT_CONTROL:
       if (action == GLFW_PRESS || action == GLFW_REPEAT) {
         s->zoom /= 1.05;
-        glUniform1f(s->uniform_zoom, s->zoom);
+        fractal_update_zoom_uniform(s);
       }
       break;
   }

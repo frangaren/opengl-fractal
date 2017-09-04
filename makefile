@@ -8,11 +8,12 @@ PROGRAM_NAME=fractal
 default: build
 
 .PHONY:build
-build: bin/$(PROGRAM_NAME) bin/vertex_shader.glsl bin/fragment_shader.glsl
+build: bin/$(PROGRAM_NAME) bin/vertex_shader.glsl bin/fragment_shader.glsl\
+  bin/fragment_shader_fp64.glsl
 
 .PHONY:clean
 clean:
-	rm -f bin/$(PROGRAM_NAME)
+	rm -rf bin
 	rm -f src/*.o
 
 bin/$(PROGRAM_NAME): src/main.o src/app.o src/fractal.o
@@ -33,5 +34,9 @@ bin/vertex_shader.glsl: src/vertex_shader.glsl
 	cp $< $@
 
 bin/fragment_shader.glsl: src/fragment_shader.glsl
+	mkdir -p bin
+	cp $< $@
+
+bin/fragment_shader_fp64.glsl: src/fragment_shader_fp64.glsl
 	mkdir -p bin
 	cp $< $@
