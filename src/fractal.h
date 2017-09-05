@@ -7,6 +7,9 @@
 #include "app.h"
 
 typedef struct {
+  struct {
+    bool fp64;
+  } options;
   GLuint vao;
   GLuint vbo;
   size_t vbo_size;

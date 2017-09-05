@@ -69,7 +69,9 @@ static GLFWwindow *app_create_window(size_t width, size_t height,\
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
   // Window parameters
-  glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+  if (!fullscreen) {
+    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+  }
   // Window creation
   GLFWwindow *window = NULL;
   if (fullscreen) {
@@ -78,6 +80,7 @@ static GLFWwindow *app_create_window(size_t width, size_t height,\
   } else {
     window = glfwCreateWindow(width, height, title, NULL, NULL);
   }
+  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
   glfwMakeContextCurrent(window);
   return window;
 }
