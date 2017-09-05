@@ -95,6 +95,7 @@ static void main_show_help() {
   "\t- r and left shift:   zoom out.\n"\
   "\t- f and left control: zoom in.\n"\
   "\t- i, j, k and l:      modify Julia's constant (only in julia fractal).\n"\
+  "\t- escape and q:       quit.\n"\
   "\n"\
   "Options:\n"\
   "\t-64/--f64: enable  64bits floating point if supported (demanding).\n"\
