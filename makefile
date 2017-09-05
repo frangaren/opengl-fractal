@@ -8,8 +8,9 @@ PROGRAM_NAME=fractal
 default: build
 
 .PHONY:build
-build: bin/$(PROGRAM_NAME) bin/vertex_shader.glsl bin/fragment_shader.glsl\
-  bin/fragment_shader_fp64.glsl
+build: bin/$(PROGRAM_NAME) bin/vertex_shader.glsl bin/mandelbrot_shader.glsl\
+  bin/mandelbrot_shader_fp64.glsl bin/julia_shader.glsl\
+  bin/julia_shader_fp64.glsl
 
 .PHONY:clean
 clean:
@@ -33,10 +34,18 @@ bin/vertex_shader.glsl: src/vertex_shader.glsl
 	mkdir -p bin
 	cp $< $@
 
-bin/fragment_shader.glsl: src/fragment_shader.glsl
+bin/mandelbrot_shader.glsl: src/mandelbrot_shader.glsl
 	mkdir -p bin
 	cp $< $@
 
-bin/fragment_shader_fp64.glsl: src/fragment_shader_fp64.glsl
+bin/mandelbrot_shader_fp64.glsl: src/mandelbrot_shader_fp64.glsl
+	mkdir -p bin
+	cp $< $@
+
+bin/julia_shader.glsl: src/julia_shader.glsl
+	mkdir -p bin
+	cp $< $@
+
+bin/julia_shader_fp64.glsl: src/julia_shader_fp64.glsl
 	mkdir -p bin
 	cp $< $@

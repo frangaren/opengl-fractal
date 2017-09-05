@@ -12,41 +12,28 @@ static bool fractal_create_shader_program(FractalState *state);
 static void fractal_update_resolution_uniform(App *app);
 static void fractal_update_offset_uniform(FractalState *state);
 static void fractal_update_zoom_uniform(FractalState *state);
+static void fractal_update_julia_uniform(FractalState *state);
 static void fractal_key_callback(GLFWwindow *window, int key, int scancode,\
   int action, int mods);
 static void fractal_resize_callback(GLFWwindow *window, int width, int height);
 
+
 bool fractal_initialize(App *app) {
   fractal = app;
   FractalState *s = app->state;
-  if (GLEW_ARB_gpu_shader_fp64) {
-    fprintf(stderr, "Found extension ARB_gpu_shader_fp64. Using %s\n",
-       "fragment_shader_fp64.glsl");
-  } else {
-    fprintf(stderr, "Couldn't find extension ARB_gpu_shader_fp64.\n");
-    return false;
+  if (s->options.fp64) {
+    if (GLEW_ARB_gpu_shader_fp64) {
+      fprintf(stderr, "Found extension ARB_gpu_shader_fp64. "\
+        "Using 64 bits floating point shaders.\n");
+    } else {
+      fprintf(stderr, "Couldn't find extension ARB_gpu_shader_fp64. "\
+        "Using 32 bits floating point shaders.\n");
+      s->options.fp64 = false;
+    }
   }
   s->vao = fractal_create_vao();
   s->vbo = fractal_create_vbo();
   s->vbo_size = 4;
-  s->vertex_shader = fractal_load_shader(GL_VERTEX_SHADER,\
-    "vertex_shader.glsl");
-  if (s->vertex_shader == 0) {
-    return false;
-  }
-  if (s->options.fp64) {
-    s->fragment_shader = fractal_load_shader(GL_FRAGMENT_SHADER,\
-      "fragment_shader_fp64.glsl");
-    if (s->fragment_shader == 0) {
-      return false;
-    }
-  } else {
-    s->fragment_shader = fractal_load_shader(GL_FRAGMENT_SHADER,\
-      "fragment_shader.glsl");
-    if (s->fragment_shader == 0) {
-      return false;
-    }
-  }
   if (!fractal_create_shader_program(s)) {
     return false;
   }
@@ -59,6 +46,12 @@ bool fractal_initialize(App *app) {
   s->uniform_zoom = glGetUniformLocation(s->shader_program, "zoom");
   s->zoom = 1.0;
   fractal_update_zoom_uniform(s);
+  if (s->options.julia) {
+    s->uniform_julia = glGetUniformLocation(s->shader_program, "jc");
+    s->julia_x = 0.0;
+    s->julia_y = 0.0;
+    fractal_update_julia_uniform(s);
+  }
   glfwSetWindowSizeCallback(app->window, fractal_resize_callback);
   glfwSetKeyCallback(app->window, fractal_key_callback);
   return true;
@@ -142,6 +135,42 @@ static GLuint fractal_load_shader(GLenum type, const char *path) {
 }
 
 static bool fractal_create_shader_program(FractalState *s) {
+  // Load vertex shader
+  s->vertex_shader = fractal_load_shader(GL_VERTEX_SHADER,\
+    "vertex_shader.glsl");
+  if (s->vertex_shader == 0) {
+    return false;
+  }
+  // Load fragment shader
+  if (s->options.julia) {
+    if (s->options.fp64) {
+      s->fragment_shader = fractal_load_shader(GL_FRAGMENT_SHADER,\
+        "julia_shader_fp64.glsl");
+      if (s->fragment_shader == 0) {
+        return false;
+      }
+    } else {
+      s->fragment_shader = fractal_load_shader(GL_FRAGMENT_SHADER,\
+        "julia_shader.glsl");
+      if (s->fragment_shader == 0) {
+        return false;
+      }
+    }
+  } else {
+    if (s->options.fp64) {
+      s->fragment_shader = fractal_load_shader(GL_FRAGMENT_SHADER,\
+        "mandelbrot_shader_fp64.glsl");
+      if (s->fragment_shader == 0) {
+        return false;
+      }
+    } else {
+      s->fragment_shader = fractal_load_shader(GL_FRAGMENT_SHADER,\
+        "mandelbrot_shader.glsl");
+      if (s->fragment_shader == 0) {
+        return false;
+      }
+    }
+  }
   // Create program
   s->shader_program = glCreateProgram();
   glAttachShader(s->shader_program, s->vertex_shader);
@@ -186,6 +215,16 @@ static void fractal_update_zoom_uniform(FractalState *s) {
   }
 }
 
+static void fractal_update_julia_uniform(FractalState *s) {
+  if (s->options.julia) {
+    if (s->options.fp64) {
+      glUniform2d(s->uniform_julia, s->julia_x, s->julia_y);
+    } else {
+      glUniform2f(s->uniform_julia, s->julia_x, s->julia_y);
+    }
+  }
+}
+
 static void fractal_key_callback(GLFWwindow *window, int key, int scancode,\
   int action, int mods) {
   FractalState *s = fractal->state;
@@ -216,6 +255,30 @@ static void fractal_key_callback(GLFWwindow *window, int key, int scancode,\
       if (action == GLFW_PRESS || action == GLFW_REPEAT) {
         s->offset_x -= 0.05*s->zoom;
         fractal_update_offset_uniform(s);
+      }
+      break;
+    case GLFW_KEY_I:
+      if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+        s->julia_y += 0.05;
+        fractal_update_julia_uniform(s);
+      }
+      break;
+    case GLFW_KEY_K:
+      if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+        s->julia_y -= 0.05;
+        fractal_update_julia_uniform(s);
+      }
+      break;
+    case GLFW_KEY_J:
+      if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+        s->julia_x += 0.05;
+        fractal_update_julia_uniform(s);
+      }
+      break;
+    case GLFW_KEY_L:
+      if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+        s->julia_x -= 0.05;
+        fractal_update_julia_uniform(s);
       }
       break;
     case GLFW_KEY_R:

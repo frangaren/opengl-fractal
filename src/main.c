@@ -23,6 +23,8 @@ int main(int argc, char **argv) {
   if (fractal.state == NULL) {
     return 2;
   }
+  ((FractalState *)(fractal.state))->options.fp64 = false;
+  ((FractalState *)(fractal.state))->options.julia = false;
   // Read command line arguments
   for (size_t i = 1; i < argc; i++) {
     if (strcmp(argv[i], "--fp64") == 0 || strcmp(argv[i], "-64") == 0) {
@@ -51,6 +53,10 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Missing value for %s.\n", argv[i]);
         return 2;
       }
+    } else if (strcmp(argv[i], "--julia") == 0 ||\
+      strcmp(argv[i], "-j") == 0) {
+      // Activate julia mode
+      ((FractalState *)(fractal.state))->options.julia = true;
     }
   }
   // Start the app

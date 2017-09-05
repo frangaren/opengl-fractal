@@ -9,6 +9,7 @@
 typedef struct {
   struct {
     bool fp64;
+    bool julia;
   } options;
   GLuint vao;
   GLuint vbo;
@@ -22,6 +23,9 @@ typedef struct {
   GLint uniform_offset;
   double zoom;
   GLint uniform_zoom;
+  double julia_x;
+  double julia_y;
+  GLint uniform_julia;
 } FractalState;
 
 bool fractal_initialize(App *app);
